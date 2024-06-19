@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, Q
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
+from mainwindow_ui import Ui_MainWindow
 
 
 # Класс для работы с потоками
@@ -52,16 +53,17 @@ class Worker(QObject):
 
 
 # Класс главного окна
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
+        self.setupUi(self)
 
         self.file_paths = []  # Список путей к файлам
         self.stop_threads = threading.Event()  # Событие остановки потоков
         self.threads = []  # Список потоков
         self.finish_status = False  # Флаг завершения загрузки
 
-        loadUi('mainwindow.ui', self)
+        # loadUi('mainwindow.ui', self)
 
         # values = ["Высокий", "Средний", "Низкий"]
         # self.comboBox.addItems(values)
@@ -151,8 +153,11 @@ class MainWindow(QMainWindow):
             file_name = QFileInfo(file_path).fileName()
             self.file_paths.append(file_path)
             self.add_file_to_table(file_name)
-        self.pushButton_2.setEnabled(True)
-        self.pushButton_3.setEnabled(True)
+
+        # Проверка состояния кнопок и процесса
+        if not self.threads or self.finish_status:
+            self.pushButton_2.setEnabled(True)
+            self.pushButton_3.setEnabled(True)
         print(self.file_paths)
 
     # ======================================================================================================================

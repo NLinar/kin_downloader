@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setContentsMargins(8, 8, 8, 8)
+        self.verticalLayout.setContentsMargins(1, 1, 1, 1)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tableView = QtWidgets.QTableView(self.centralwidget)
         self.tableView.setEnabled(True)
