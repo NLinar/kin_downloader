@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 import time
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
@@ -86,6 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableView.setSelectionMode(QTableView.ExtendedSelection)
 
         self.setAcceptDrops(True)
+        self.pushButton.clicked.connect(self.open_file_dialog)
         self.pushButton_2.clicked.connect(self.start_thread)
         self.pushButton_3.clicked.connect(self.clear_table_and_array)
 
@@ -195,6 +196,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             }
         """
         self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
+
+    def open_file_dialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+        file_names, _ = QFileDialog.getOpenFileNames(self, "Выбрать файлы", "", "KIN Files (*.kin)", options=options)
+        if file_names:
+            for file_name in file_names:
+                self.file_paths.append(file_name)
+                self.add_file_to_table(QFileInfo(file_name).fileName())
+            print(self.file_paths)
+        self.pushButton_2.setEnabled(True)
+        self.pushButton_3.setEnabled(True)
 
     def clear_table_and_array(self):
         self.pushButton_2.setEnabled(False)
