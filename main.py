@@ -7,49 +7,7 @@ from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
 from mainwindow_ui import Ui_MainWindow
-
-
-# Класс для работы с потоками
-class Worker(QObject):
-    progress_signal = pyqtSignal(int, int)
-    status_signal = pyqtSignal(int, str)
-    finished_signal = pyqtSignal(bool)
-
-    # Конструктор
-    def __init__(self, file_paths, stop_event):
-        super().__init__()
-        self.file_paths = file_paths
-        self.stop_event = stop_event
-
-    def run(self):
-        try:
-            self.finished_signal.emit(False)
-            for file_index, file_path in enumerate(self.file_paths):
-                for i in range(1, 51):
-                    if self.stop_event.is_set():
-                        print("Thread stopped_1")
-                        return
-                    print(f"Processing file {file_index + 1}/{len(self.file_paths)}: {file_path}, progress: {i * 2}%")
-                    self.progress_signal.emit(file_index, i * 2)
-                    time.sleep(0.1)
-                if self.stop_event.is_set():
-                    print("Thread stopped_2")
-                    return
-                self.status_signal.emit(file_index, "Декодирование")
-                time.sleep(2)
-                if self.stop_event.is_set():
-                    print("Thread stopped_3")
-                    return
-                self.status_signal.emit(file_index, "Объединение")
-                time.sleep(2)
-                if self.stop_event.is_set():
-                    print("Thread stopped_4")
-                    return
-                self.status_signal.emit(file_index, "Загружено")
-                time.sleep(2)
-            self.finished_signal.emit(True)
-        except Exception as e:
-            print(f"Error_downloader: {e}")
+from downloader import Worker
 
 
 # Класс главного окна
@@ -206,8 +164,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.file_paths.append(file_name)
                 self.add_file_to_table(QFileInfo(file_name).fileName())
             print(self.file_paths)
-        self.pushButton_2.setEnabled(True)
-        self.pushButton_3.setEnabled(True)
+            self.pushButton_2.setEnabled(True)
+            self.pushButton_3.setEnabled(True)
 
     def clear_table_and_array(self):
         self.pushButton_2.setEnabled(False)
@@ -280,6 +238,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for index in indices_to_remove:
             self.model.removeRow(index.row())
             del self.file_paths[index.row()]
+
+        # Проверка состояния кнопок
+        if not self.file_paths:
+            self.pushButton_2.setEnabled(False)
+            self.pushButton_3.setEnabled(False)
 
         print(self.file_paths)
 
