@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, Q
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
-from mainwindow_ui import Ui_MainWindow
+from main_window_ui import Ui_MainWindow
 from downloader import Worker
 
 
