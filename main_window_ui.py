@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Обзор..."))
         self.pushButton_3.setText(_translate("MainWindow", "Очистить"))
         self.pushButton_2.setText(_translate("MainWindow", "Скачать"))
-        self.menu.setTitle(_translate("MainWindow", "Настройки"))
+        self.menu.setTitle(_translate("MainWindow", "Программа"))
         self.menu_2.setTitle(_translate("MainWindow", "Справка"))
         self.action.setText(_translate("MainWindow", "Лог файл"))
         self.action_2.setText(_translate("MainWindow", "О программе"))

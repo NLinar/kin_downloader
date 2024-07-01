@@ -2,11 +2,12 @@ import os
 import sys
 import threading
 import time
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog, QAction
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
 from main_window_ui import Ui_MainWindow
+from setting import Ui_Settings
 from downloader import Worker
 
 
@@ -44,6 +45,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableView.setSelectionMode(QTableView.ExtendedSelection)
 
         self.setAcceptDrops(True)
+        # меню
+        self.settings_action = QAction("Настройки", self)
+        self.menu.addAction(self.settings_action)
+        self.settings_action.triggered.connect(self.open_settings)
+        # кнопки
         self.pushButton.clicked.connect(self.open_file_dialog)
         self.pushButton_2.clicked.connect(self.start_thread)
         self.pushButton_3.clicked.connect(self.clear_table_and_array)
@@ -67,6 +73,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 }
             """
         self.tableView.setStyleSheet(style_sheet_1)
+
+# ======================================================================================================================
 
     # Закрытие программы
     def closeEvent(self, event):
@@ -119,7 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_3.setEnabled(True)
         print(self.file_paths)
 
-    # ======================================================================================================================
+# ======================================================================================================================
 
     # Добавление файлов в таблицу
     def add_file_to_table(self, file_name):
@@ -154,6 +162,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             }
         """
         self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
+
+    def open_settings(self):
+        print("sdhsdh")
+        self.settings_dialog = Ui_Settings()
+        print("jhl")
+        self.settings_dialog.setWindowModality(Qt.ApplicationModal)
+        self.settings_dialog.exec_()
 
     def open_file_dialog(self):
         options = QFileDialog.Options()
