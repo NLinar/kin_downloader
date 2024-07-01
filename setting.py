@@ -5,5 +5,4 @@ import sys
 class Ui_Settings(QMainWindow):
     def __init__(self):
         super().__init__()
-        print("cvnxcv")
         loadUi('setting_window.ui', self)
