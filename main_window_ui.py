@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mainwindow.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.10
 #
@@ -82,6 +82,12 @@ class Ui_MainWindow(object):
         icon1.addPixmap(QtGui.QPixmap("icon/certificate-48.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.action_2.setIcon(icon1)
         self.action_2.setObjectName("action_2")
+        self.action_3 = QtWidgets.QAction(MainWindow)
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap("icon/setting-48.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.action_3.setIcon(icon2)
+        self.action_3.setObjectName("action_3")
+        self.menu.addAction(self.action_3)
         self.menu_2.addAction(self.action)
         self.menu_2.addSeparator()
         self.menu_2.addAction(self.action_2)
@@ -97,7 +103,8 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Обзор..."))
         self.pushButton_3.setText(_translate("MainWindow", "Очистить"))
         self.pushButton_2.setText(_translate("MainWindow", "Скачать"))
-        self.menu.setTitle(_translate("MainWindow", "Программа"))
+        self.menu.setTitle(_translate("MainWindow", "Управление"))
         self.menu_2.setTitle(_translate("MainWindow", "Справка"))
         self.action.setText(_translate("MainWindow", "Лог файл"))
         self.action_2.setText(_translate("MainWindow", "О программе"))
+        self.action_3.setText(_translate("MainWindow", "Настройки"))

@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 import time
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog, QAction
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
@@ -46,9 +46,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.setAcceptDrops(True)
         # меню
-        self.settings_action = QAction("Настройки", self)
-        self.menu.addAction(self.settings_action)
-        self.settings_action.triggered.connect(self.open_settings)
+        self.action_3.triggered.connect(self.open_settings)
         # кнопки
         self.pushButton.clicked.connect(self.open_file_dialog)
         self.pushButton_2.clicked.connect(self.start_thread)
@@ -164,11 +162,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
 
     def open_settings(self):
-        print("sdhsdh")
         self.settings_dialog = Ui_Settings()
-        print("jhl")
         self.settings_dialog.setWindowModality(Qt.ApplicationModal)
-        self.settings_dialog.exec_()
+        self.settings_dialog.show()
 
     def open_file_dialog(self):
         options = QFileDialog.Options()

@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import QDialog, QApplication
+from PyQt5.QtWidgets import QMainWindow
 from PyQt5.uic import loadUi
 import sys
 
-class Ui_Settings(QDialog):
+class Ui_Settings(QMainWindow):
     def __init__(self):
         super().__init__()
         print("cvnxcv")
-        loadUi('main_window.ui', self)
+        loadUi('setting_window.ui', self)
