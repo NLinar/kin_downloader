@@ -1,11 +1,9 @@
 import os
 import sys
 import threading
-import time
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
-from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QFileInfo
 from main_window_ui import Ui_MainWindow
 from setting import Ui_Settings
 from downloader import Worker
@@ -22,13 +20,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.threads = []  # Список потоков
         self.finish_status = False  # Флаг завершения загрузки
 
-        # loadUi('mainwindow.ui', self)
-
-        # values = ["Высокий", "Средний", "Низкий"]
-        # self.comboBox.addItems(values)
-
+        # таблица
         self.model = QStandardItemModel(0, 4)
-
         headers = ["Название", "Качество", "Загрузка", "Статус"]
         self.model.setHorizontalHeaderLabels(headers)
 
