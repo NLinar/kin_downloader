@@ -1,0 +1,7 @@
+{
+    "ffmpeg_path": "D:/Py Project/kinescope-dl-0.2.2/venv/ffmpeg/bin/ffmpeg.exe",
+    "4decrypt_path": "D:/Py Project/kinescope-dl-0.2.2/venv/Bento4/bin/mp4decrypt.exe",
+    "temp_folder": "D:/Py Project/QtKinDownloader/временные файлы",
+    "save_folder": "D:/Py Project/QtKinDownloader/скачанное",
+    "video_quality": "Low"
+}
