@@ -121,28 +121,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 # ======================================================================================================================
 
     # Добавление файлов в таблицу
-    def add_file_to_table(self, file_name):
+    def add_file_to_table(self, data):
         row_count = self.model.rowCount()
         self.model.insertRow(row_count)
         self.tableView.setRowHeight(row_count, 10)
-        for column, item_data in enumerate([file_name, "", "", ""]):
+
+        # Заполняем столбцы таблицы данными из JSON
+        columns = ["Title", "Quality_selected", "", ""]
+        for column, key in enumerate(columns):
+            item_data = data.get(key, "")
             item = QStandardItem(item_data)
             if column == 0:
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            if column == 1:
+            elif column == 1:
                 combo_box = QComboBox()
-                combo_box.addItems(["1080", "720", "480", "360"])
+                quality_list = eval(data.get("Quality", "[]"))  # Получаем список качеств из JSON
+                combo_box.addItems(quality_list)
                 self.tableView.setIndexWidget(self.model.index(row_count, column), combo_box)
             elif column == 2:
                 progress_bar = QProgressBar()
                 progress_bar.setValue(0)
                 self.tableView.setIndexWidget(self.model.index(row_count, column), progress_bar)
             elif column == 3:
-                speed_label = QLabel("Не загружен")
-                speed_label.setAlignment(Qt.AlignCenter)
-                self.tableView.setIndexWidget(self.model.index(row_count, column), speed_label)
-            else:
-                self.model.setItem(row_count, column, item)
+                status_label = QLabel("Не загружен")
+                status_label.setAlignment(Qt.AlignCenter)
+                self.tableView.setIndexWidget(self.model.index(row_count, column), status_label)
+            self.model.setItem(row_count, column, item)
 
         style_sheet_2 = """
             QProgressBar {
