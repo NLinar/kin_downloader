@@ -1,6 +1,7 @@
 import os
 import sys
 import threading
+import json
 import time
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
 from PyQt5.uic import loadUi
@@ -115,30 +116,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def dropEvent(self, event):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
-            file_name = QFileInfo(file_path).fileName()
-            self.file_paths.append(file_path)
-            self.add_file_to_table(file_name)
+            if file_path.endswith('.kin'):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    file_data = json.load(file)
+                    for entry in file_data:
+                        self.file_paths.append(entry)
+                        self.add_file_to_table(entry)
 
-        # Проверка состояния кнопок и процесса
         if not self.threads or self.finish_status:
             self.pushButton_2.setEnabled(True)
             self.pushButton_3.setEnabled(True)
         print(self.file_paths)
 
-# ======================================================================================================================
+    # ======================================================================================================================
 
     # Добавление файлов в таблицу
-    def add_file_to_table(self, file_name):
+    def add_file_to_table(self, entry):
         row_count = self.model.rowCount()
         self.model.insertRow(row_count)
         self.tableView.setRowHeight(row_count, 10)
-        for column, item_data in enumerate([file_name, "", "", ""]):
+        for column, item_data in enumerate([entry['Title'], ', '.join(eval(entry['Quality'])), "", ""]):
             item = QStandardItem(item_data)
             if column == 0:
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
             if column == 1:
                 combo_box = QComboBox()
-                combo_box.addItems(["1080", "720", "480", "360"])
+                combo_box.addItems(eval(entry['Quality']))
                 self.tableView.setIndexWidget(self.model.index(row_count, column), combo_box)
             elif column == 2:
                 progress_bar = QProgressBar()
@@ -179,8 +182,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file_names, _ = QFileDialog.getOpenFileNames(self, "Выбрать файлы", "", "KIN Files (*.kin)", options=options)
         if file_names:
             for file_name in file_names:
-                self.file_paths.append(file_name)
-                self.add_file_to_table(QFileInfo(file_name).fileName())
+                with open(file_name, 'r', encoding='utf-8') as file:
+                    file_data = json.load(file)
+                    for entry in file_data:
+                        self.file_paths.append(entry)
+                        self.add_file_to_table(entry)
             print(self.file_paths)
             self.pushButton_2.setEnabled(True)
             self.pushButton_3.setEnabled(True)
@@ -197,7 +203,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             self.pushButton_2.setEnabled(False)
             self.pushButton_3.setEnabled(False)
-            worker = Worker(self.file_paths, self.stop_threads)
+
+            # Сначала определим, какие файлы не загружены
+            self.not_downloaded_files = []
+            for i, entry in enumerate(self.file_paths):
+                status_label = self.tableView.indexWidget(self.model.index(i, 3))
+                if status_label.text() != "Загружено":
+                    self.not_downloaded_files.append((i, entry))
+
+            if not self.not_downloaded_files:
+                self.pushButton_2.setEnabled(True)
+                self.pushButton_3.setEnabled(True)
+                return
+
+            worker = Worker(self.not_downloaded_files, self.stop_threads)
             worker.progress_signal.connect(self.update_progress)
             worker.status_signal.connect(self.update_status)
             worker.finished_signal.connect(self.on_finished)

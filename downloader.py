@@ -6,15 +6,17 @@ class Worker(QObject):
     status_signal = pyqtSignal(int, str)
     finished_signal = pyqtSignal(bool)
 
-    def __init__(self, file_paths, stop_event):
+    def __init__(self, not_downloaded_files, stop_event):
         super().__init__()
-        self.file_paths = file_paths
+        self.not_downloaded_files = not_downloaded_files
         self.stop_event = stop_event
 
     def run(self):
         try:
             self.finished_signal.emit(False)
-            for file_index, file_path in enumerate(self.file_paths):
+            for file_index, entry in self.not_downloaded_files:
+                if self.stop_event.is_set():
+                    return
                 for i in range(1, 51):
                     if self.stop_event.is_set():
                         return
