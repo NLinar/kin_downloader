@@ -1,9 +1,11 @@
 import os
 import sys
 import threading
+import time
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
+from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtCore import Qt, QFileInfo
+from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
 from main_window_ui import Ui_MainWindow
 from setting import Ui_Settings
 from downloader import Worker
@@ -20,8 +22,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.threads = []  # Список потоков
         self.finish_status = False  # Флаг завершения загрузки
 
-        # таблица
+        # loadUi('mainwindow.ui', self)
+
+        # values = ["Высокий", "Средний", "Низкий"]
+        # self.comboBox.addItems(values)
+
         self.model = QStandardItemModel(0, 4)
+
         headers = ["Название", "Качество", "Загрузка", "Статус"]
         self.model.setHorizontalHeaderLabels(headers)
 
@@ -121,32 +128,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 # ======================================================================================================================
 
     # Добавление файлов в таблицу
-    def add_file_to_table(self, data):
+    def add_file_to_table(self, file_name):
         row_count = self.model.rowCount()
         self.model.insertRow(row_count)
         self.tableView.setRowHeight(row_count, 10)
-
-        # Заполняем столбцы таблицы данными из JSON
-        columns = ["Title", "Quality_selected", "", ""]
-        for column, key in enumerate(columns):
-            item_data = data.get(key, "")
+        for column, item_data in enumerate([file_name, "", "", ""]):
             item = QStandardItem(item_data)
             if column == 0:
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            elif column == 1:
+            if column == 1:
                 combo_box = QComboBox()
-                quality_list = eval(data.get("Quality", "[]"))  # Получаем список качеств из JSON
-                combo_box.addItems(quality_list)
+                combo_box.addItems(["1080", "720", "480", "360"])
                 self.tableView.setIndexWidget(self.model.index(row_count, column), combo_box)
             elif column == 2:
                 progress_bar = QProgressBar()
                 progress_bar.setValue(0)
                 self.tableView.setIndexWidget(self.model.index(row_count, column), progress_bar)
             elif column == 3:
-                status_label = QLabel("Не загружен")
-                status_label.setAlignment(Qt.AlignCenter)
-                self.tableView.setIndexWidget(self.model.index(row_count, column), status_label)
-            self.model.setItem(row_count, column, item)
+                speed_label = QLabel("Не загружен")
+                speed_label.setAlignment(Qt.AlignCenter)
+                self.tableView.setIndexWidget(self.model.index(row_count, column), speed_label)
+            else:
+                self.model.setItem(row_count, column, item)
 
         style_sheet_2 = """
             QProgressBar {
@@ -161,6 +164,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_settings(self):
         self.settings_dialog = Ui_Settings()
         self.settings_dialog.setWindowModality(Qt.ApplicationModal)
+        main_window_rect = self.geometry()
+        dialog_rect = self.settings_dialog.geometry()
+
+        x = main_window_rect.center().x() - dialog_rect.width() / 2
+        y = main_window_rect.center().y() - dialog_rect.height() / 2
+
+        self.settings_dialog.setGeometry(x, y, dialog_rect.width(), dialog_rect.height())
         self.settings_dialog.show()
 
     def open_file_dialog(self):
