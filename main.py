@@ -2,11 +2,9 @@ import os
 import sys
 import threading
 import json
-import time
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
-from PyQt5.uic import loadUi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtCore import Qt, QFileInfo, pyqtSignal, QObject
+from PyQt5.QtCore import Qt
 from main_window_ui import Ui_MainWindow
 from setting import Ui_Settings
 from downloader import Worker
@@ -18,15 +16,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        self.not_downloaded_files = []  # Список не загруженных файлов
+        self.settings_dialog = None  # Диалог настроек
         self.file_paths = []  # Список путей к файлам
+        self.not_downloaded_files = []  # Список не загруженных файлов
         self.stop_threads = threading.Event()  # Событие остановки потоков
         self.threads = []  # Список потоков
         self.finish_status = False  # Флаг завершения загрузки
-
-        # loadUi('mainwindow.ui', self)
-
-        # values = ["Высокий", "Средний", "Низкий"]
-        # self.comboBox.addItems(values)
+        self.new_not_downloaded_files = []  # Список новых не загруженных файлов
+        self.worker = None  # Ссылка на worker
 
         self.model = QStandardItemModel(0, 4)
 
@@ -114,6 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Обработка перетаскивания
     def dropEvent(self, event):
+        newly_added_files = []
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.endswith('.kin'):
@@ -122,6 +121,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     for entry in file_data:
                         self.file_paths.append(entry)
                         self.add_file_to_table(entry)
+                        # Добавляем новый файл в список новых файлов
+                        newly_added_files.append(entry)
+
+        if self.threads and not self.finish_status:
+            self.worker.update_signal.emit(newly_added_files)  # Отправляем новые файлы в поток
 
         if not self.threads or self.finish_status:
             self.pushButton_2.setEnabled(True)
@@ -173,7 +177,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         x = main_window_rect.center().x() - dialog_rect.width() / 2
         y = main_window_rect.center().y() - dialog_rect.height() / 2
 
-        self.settings_dialog.setGeometry(x, y, dialog_rect.width(), dialog_rect.height())
+        self.settings_dialog.setGeometry(int(x), int(y), dialog_rect.width(), dialog_rect.height())
         self.settings_dialog.show()
 
     def open_file_dialog(self):
@@ -188,8 +192,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         self.file_paths.append(entry)
                         self.add_file_to_table(entry)
             print(self.file_paths)
-            self.pushButton_2.setEnabled(True)
-            self.pushButton_3.setEnabled(True)
+            if not self.threads or self.finish_status:
+                self.pushButton_2.setEnabled(True)
+                self.pushButton_3.setEnabled(True)
 
     def clear_table_and_array(self):
         self.pushButton_2.setEnabled(False)
@@ -204,8 +209,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_2.setEnabled(False)
             self.pushButton_3.setEnabled(False)
 
-            # Сначала определим, какие файлы не загружены
-            self.not_downloaded_files = []
             for i, entry in enumerate(self.file_paths):
                 status_label = self.tableView.indexWidget(self.model.index(i, 3))
                 if status_label.text() != "Загружено":
@@ -216,12 +219,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.pushButton_3.setEnabled(True)
                 return
 
-            worker = Worker(self.not_downloaded_files, self.stop_threads)
-            worker.progress_signal.connect(self.update_progress)
-            worker.status_signal.connect(self.update_status)
-            worker.finished_signal.connect(self.on_finished)
+            self.worker = Worker(self.not_downloaded_files, self.stop_threads)  # Сохраняем ссылку на worker
+            self.worker.progress_signal.connect(self.update_progress)
+            self.worker.status_signal.connect(self.update_status)
+            self.worker.finished_signal.connect(self.on_finished)
 
-            thread = threading.Thread(target=worker.run)
+            thread = threading.Thread(target=self.worker.run)
             self.threads.append(thread)
             thread.start()
         except Exception as e:
@@ -269,12 +272,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif status_label and status_label.text() == "Загружено" and not self.finish_status:
                 print(f"Строка {index.row() + 1} завершена но процесс не завершен, удаление запрещено.")
             else:
-                indices_to_remove.append(index)
+                indices_to_remove.append(index.row())
 
-        # Удаление строк
-        for index in indices_to_remove:
-            self.model.removeRow(index.row())
-            del self.file_paths[index.row()]
+        # Удаление строк из модели и списка
+        for row in sorted(indices_to_remove, reverse=True):
+            self.model.removeRow(row)
+            del self.file_paths[row]
+
+        if self.threads and not self.finish_status:
+            self.worker.remove_signal.emit(indices_to_remove)
 
         # Проверка состояния кнопок
         if not self.file_paths:
