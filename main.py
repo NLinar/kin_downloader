@@ -16,7 +16,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
-        self.not_downloaded_files = []  # Список не загруженных файлов
         self.settings_dialog = None  # Диалог настроек
         self.file_paths = []  # Список путей к файлам
         self.not_downloaded_files = []  # Список не загруженных файлов
@@ -213,11 +212,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 status_label = self.tableView.indexWidget(self.model.index(i, 3))
                 if status_label.text() != "Загружено":
                     self.not_downloaded_files.append((i, entry))
-
-            if not self.not_downloaded_files:
-                self.pushButton_2.setEnabled(True)
-                self.pushButton_3.setEnabled(True)
-                return
 
             self.worker = Worker(self.not_downloaded_files, self.stop_threads)  # Сохраняем ссылку на worker
             self.worker.progress_signal.connect(self.update_progress)
