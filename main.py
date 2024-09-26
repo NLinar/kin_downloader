@@ -2,7 +2,8 @@ import os
 import sys
 import threading
 import json
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView, QFileDialog
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView,
+                             QFileDialog, QMessageBox)
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
 from main_window_ui import Ui_MainWindow
@@ -16,6 +17,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        self.newly_added_files = []  # Список новых файлов
+        self.new_file_indices = None  # Индексы новых файлов
         self.settings_dialog = None  # Диалог настроек
         self.file_paths = []  # Список путей к файлам
         self.not_downloaded_files = []  # Список не загруженных файлов
@@ -111,25 +114,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Обработка перетаскивания
     def dropEvent(self, event):
-        newly_added_files = []
+        duplicate_found = False  # Флаг для отслеживания дубликатов
+        new_files_added = False  # Флаг для отслеживания, были ли добавлены новые файлы
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.endswith('.kin'):
                 with open(file_path, 'r', encoding='utf-8') as file:
                     file_data = json.load(file)
                     for entry in file_data:
-                        self.file_paths.append(entry)
-                        self.add_file_to_table(entry)
-                        # Добавляем новый файл в список новых файлов
-                        newly_added_files.append(entry)
+                        # Проверяем, есть ли уже этот файл в self.file_paths
+                        if entry in self.file_paths:
+                            duplicate_found = True
+                        else:
+                            # Если файл новый, добавляем его
+                            new_files_added = True
+                            self.file_paths.append(entry)
+                            self.add_file_to_table(entry)
+                            self.newly_added_files.append(entry)
+
+        # Определяем, какое сообщение показать
+        if duplicate_found and new_files_added:  # Если добавлены новые файлы, но есть дубликаты
+            info_dialog = QMessageBox()
+            info_dialog.setIcon(QMessageBox.Information)
+            info_dialog.setWindowTitle("Предупреждение")
+            info_dialog.setText("Некоторые файлы уже присутствуют в таблице и не были добавлены повторно.")
+            info_dialog.setStandardButtons(QMessageBox.Ok)
+            info_dialog.exec_()
+        elif duplicate_found:  # Если нет новых файлов
+            no_files_dialog = QMessageBox()
+            no_files_dialog.setIcon(QMessageBox.Critical)
+            no_files_dialog.setWindowTitle("Ошибка")
+            no_files_dialog.setText("Все файлы, которые вы пытались добавить, уже присутствуют в таблице.")
+            no_files_dialog.setStandardButtons(QMessageBox.Ok)
+            no_files_dialog.exec_()
 
         if self.threads and not self.finish_status:
-            self.worker.update_signal.emit(newly_added_files)  # Отправляем новые файлы в поток
+            self.worker.update_signal.emit(self.newly_added_files)  # Отправляем новые файлы в поток
+            self.newly_added_files = []
 
         if not self.threads or self.finish_status:
             self.pushButton_2.setEnabled(True)
             self.pushButton_3.setEnabled(True)
-        print(self.file_paths)
+        print(f"file_paths: {self.file_paths}")
 
     # ======================================================================================================================
 
@@ -205,15 +231,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Запуск потока
     def start_thread(self):
         try:
-            self.pushButton_2.setEnabled(False)
-            self.pushButton_3.setEnabled(False)
+            # self.pushButton_2.setEnabled(False)
+            # self.pushButton_3.setEnabled(False)
 
-            for i, entry in enumerate(self.file_paths):
-                status_label = self.tableView.indexWidget(self.model.index(i, 3))
-                if status_label.text() != "Загружено":
-                    self.not_downloaded_files.append((i, entry))
+            # for i, entry in enumerate(self.file_paths):
+            #     status_label = self.tableView.indexWidget(self.model.index(i, 3))
+            #     if status_label.text() != "Загружено":
+            #         self.not_downloaded_files.append((i, entry))
 
-            self.worker = Worker(self.not_downloaded_files, self.stop_threads)  # Сохраняем ссылку на worker
+            # self.worker = Worker(self.not_downloaded_files, self.stop_threads)  # Сохраняем ссылку на worker
+
+            self.new_file_indices = []
+            self.new_file_indices = [self.file_paths.index(file) for file in self.newly_added_files if file in self.file_paths]
+            print(self.new_file_indices)
+
+            self.worker = Worker(self.file_paths, self.new_file_indices, self.stop_threads)  # Сохраняем ссылку на worker
             self.worker.progress_signal.connect(self.update_progress)
             self.worker.status_signal.connect(self.update_status)
             self.worker.finished_signal.connect(self.on_finished)
@@ -221,6 +253,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             thread = threading.Thread(target=self.worker.run)
             self.threads.append(thread)
             thread.start()
+            self.newly_added_files = []
         except Exception as e:
             print(f"Error_thread: {e}")
 
