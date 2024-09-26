@@ -231,8 +231,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Запуск потока
     def start_thread(self):
         try:
-            # self.pushButton_2.setEnabled(False)
-            # self.pushButton_3.setEnabled(False)
+            self.pushButton_2.setEnabled(False)
+            self.pushButton_3.setEnabled(False)
 
             # for i, entry in enumerate(self.file_paths):
             #     status_label = self.tableView.indexWidget(self.model.index(i, 3))
