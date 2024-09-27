@@ -243,7 +243,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.new_file_indices = []
             self.new_file_indices = [self.file_paths.index(file) for file in self.newly_added_files if file in self.file_paths]
-            print(self.new_file_indices)
+            print(f"new_file_indices: {self.new_file_indices}")
 
             self.worker = Worker(self.file_paths, self.new_file_indices, self.stop_threads)  # Сохраняем ссылку на worker
             self.worker.progress_signal.connect(self.update_progress)
