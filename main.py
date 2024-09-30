@@ -210,13 +210,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         options |= QFileDialog.ReadOnly
         file_names, _ = QFileDialog.getOpenFileNames(self, "Выбрать файлы", "", "KIN Files (*.kin)", options=options)
         if file_names:
+            duplicate_found = False
+            new_files_added = False
             for file_name in file_names:
                 with open(file_name, 'r', encoding='utf-8') as file:
                     file_data = json.load(file)
                     for entry in file_data:
-                        self.file_paths.append(entry)
-                        self.add_file_to_table(entry)
-            print(self.file_paths)
+                        # Проверяем, есть ли уже этот файл в self.file_paths
+                        if entry in self.file_paths:
+                            duplicate_found = True
+                        else:
+                            # Если файл новый, добавляем его
+                            new_files_added = True
+                            self.file_paths.append(entry)
+                            self.add_file_to_table(entry)
+                            self.newly_added_files.append(entry)
+
+            # Определяем, какое сообщение показать
+            if duplicate_found and new_files_added:
+                info_dialog = QMessageBox()
+                info_dialog.setIcon(QMessageBox.Information)
+                info_dialog.setWindowTitle("Предупреждение")
+                info_dialog.setText("Некоторые файлы уже присутствуют в таблице и не были добавлены повторно.")
+                info_dialog.setStandardButtons(QMessageBox.Ok)
+                info_dialog.exec_()
+            elif duplicate_found:
+                no_files_dialog = QMessageBox()
+                no_files_dialog.setIcon(QMessageBox.Critical)
+                no_files_dialog.setWindowTitle("Ошибка")
+                no_files_dialog.setText("Все файлы, которые вы пытались добавить, уже присутствуют в таблице.")
+                no_files_dialog.setStandardButtons(QMessageBox.Ok)
+                no_files_dialog.exec_()
+
+            if self.threads and not self.finish_status:
+                self.worker.update_signal.emit(self.newly_added_files)
+                self.newly_added_files = []
+
             if not self.threads or self.finish_status:
                 self.pushButton_2.setEnabled(True)
                 self.pushButton_3.setEnabled(True)
