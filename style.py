@@ -26,4 +26,4 @@ style_sheet_2 = """
     QProgressBar::chunk {
         background-color: #2ecc71;
     }
-"""
+""

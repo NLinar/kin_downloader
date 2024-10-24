@@ -166,7 +166,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.model.setItem(row_count, column, item)
 
-        self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
+        self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_22)
 
     def open_settings(self):
         self.settings_dialog = Ui_Settings()
