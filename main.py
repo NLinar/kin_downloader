@@ -9,6 +9,7 @@ from PyQt5.QtCore import Qt
 from main_window_ui import Ui_MainWindow
 from setting import Ui_Settings
 from downloader import Worker
+from style import style_sheet_1, style_sheet_2
 
 
 # Класс главного окна
@@ -53,24 +54,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_2.clicked.connect(self.start_thread)
         self.pushButton_3.clicked.connect(self.clear_table_and_array)
 
-        style_sheet_1 = """
-                QTableView::item:selected {
-                    background: #A6BDD7;
-                    color: black;
-                }
-                QTableView::item:selected:!active {
-                    background: #A6BDD7;
-                    color: black;
-                }
-                QHeaderView::section {
-                    background: #DCDCDC;
-                    font-weight: bold;
-                    border: none;
-                }
-                QTableView::item {
-                    background: transparent;
-                }
-            """
         self.tableView.setStyleSheet(style_sheet_1)
 
 # ======================================================================================================================
@@ -183,14 +166,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.model.setItem(row_count, column, item)
 
-        style_sheet_2 = """
-            QProgressBar {
-                text-align: center;
-            }
-            QProgressBar::chunk {
-                background-color: #2ecc71;
-            }
-        """
         self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
 
     def open_settings(self):
