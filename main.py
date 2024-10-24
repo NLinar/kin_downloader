@@ -263,13 +263,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_2.setEnabled(False)
             self.pushButton_3.setEnabled(False)
 
-            # for i, entry in enumerate(self.file_paths):
-            #     status_label = self.tableView.indexWidget(self.model.index(i, 3))
-            #     if status_label.text() != "Загружено":
-            #         self.not_downloaded_files.append((i, entry))
-
-            # self.worker = Worker(self.not_downloaded_files, self.stop_threads)  # Сохраняем ссылку на worker
-
             self.new_file_indices = []
             self.new_file_indices = [self.file_paths.index(file) for file in self.newly_added_files if file in self.file_paths]
             print(f"new_file_indices: {self.new_file_indices}")
@@ -343,7 +336,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_2.setEnabled(False)
             self.pushButton_3.setEnabled(False)
 
-        print(self.file_paths)
+        print(f"delete_selected_rows: {self.file_paths}")
 
 
 if __name__ == '__main__':
