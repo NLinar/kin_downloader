@@ -40,42 +40,42 @@ class Worker(QObject):
         print(f"on_remove_new_file_indices: {self.new_file_indices}")
 
     def run(self):
-        # try:
-        self.finished_signal.emit(False)
-        index = 0
-        while True:
-            # Если все файлы обработаны, выходим из цикла
-            if len(self.file_paths) == 0 or index >= len(self.file_paths):
-                print("Все файлы обработаны или индексы вышли за пределы.")
-                break
-            # Проверяем статус файла в таблице, в 4-м столбце (индекс 3)
-            if index not in self.new_file_indices:
-                print(f"Файл {index} уже загружен, пропускаем.")
-                index += 1
-            else:
-                # Получаем текущий файл
-                entry = self.file_paths[index]
-                if self.stop_event.is_set():
-                    return
-                for i in range(1, 51):
+        try:
+            self.finished_signal.emit(False)
+            index = 0
+            while True:
+                # Если все файлы обработаны, выходим из цикла
+                if len(self.file_paths) == 0 or index >= len(self.file_paths):
+                    print("Все файлы обработаны или индексы вышли за пределы.")
+                    break
+                # Проверяем статус файла в таблице, в 4-м столбце (индекс 3)
+                if index not in self.new_file_indices:
+                    print(f"Файл {index} уже загружен, пропускаем.")
+                    index += 1
+                else:
+                    # Получаем текущий файл
+                    entry = self.file_paths[index]
                     if self.stop_event.is_set():
                         return
-                    self.progress_signal.emit(index, i * 2)
-                    time.sleep(0.1)
-                if self.stop_event.is_set():
-                    return
-                self.status_signal.emit(index, "Декодирование")
-                time.sleep(2)
-                if self.stop_event.is_set():
-                    return
-                self.status_signal.emit(index, "Объединение")
-                time.sleep(2)
-                if self.stop_event.is_set():
-                    return
-                self.status_signal.emit(index, "Загружено")
-                time.sleep(2)
-                index += 1
-        self.finished_signal.emit(True)
-        self.new_file_indices = []
-        # except Exception as e:
-        #     print(f"Error_downloader: {e}")
+                    for i in range(1, 51):
+                        if self.stop_event.is_set():
+                            return
+                        self.progress_signal.emit(index, i * 2)
+                        time.sleep(0.1)
+                    if self.stop_event.is_set():
+                        return
+                    self.status_signal.emit(index, "Декодирование")
+                    time.sleep(2)
+                    if self.stop_event.is_set():
+                        return
+                    self.status_signal.emit(index, "Объединение")
+                    time.sleep(2)
+                    if self.stop_event.is_set():
+                        return
+                    self.status_signal.emit(index, "Загружено")
+                    time.sleep(2)
+                    index += 1
+            self.finished_signal.emit(True)
+            self.new_file_indices = []
+        except Exception as e:
+            print(f"Error_downloader: {e}")
