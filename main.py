@@ -99,6 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def dropEvent(self, event):
         duplicate_found = False  # Флаг для отслеживания дубликатов
         new_files_added = False  # Флаг для отслеживания, были ли добавлены новые файлы
+        priority_quality = self.get_priority_quality()
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.endswith('.kin'):
@@ -112,7 +113,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             # Если файл новый, добавляем его
                             new_files_added = True
                             self.file_paths.append(entry)
-                            self.add_file_to_table(entry)
+                            self.add_file_to_table(entry, priority_quality)
                             self.newly_added_files.append(entry)
 
         # Определяем, какое сообщение показать
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # ======================================================================================================================
 
     # Добавление файлов в таблицу
-    def add_file_to_table(self, entry):
+    def add_file_to_table(self, entry, priority_quality):
         row_count = self.model.rowCount()
         self.model.insertRow(row_count)
         self.tableView.setRowHeight(row_count, 10)
@@ -153,7 +154,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
             if column == 1:
                 combo_box = QComboBox()
-                combo_box.addItems(eval(entry['Quality']))
+                available_qualities = eval(entry['Quality'])
+                # Определите, какое качество выбрать в зависимости от приоритета
+                if priority_quality == "High":
+                    selected_quality = max(available_qualities, key=int)  # Максимальное качество
+                elif priority_quality == "Medium":
+                    # Второе по величине качество
+                    selected_quality = sorted(available_qualities, key=int)[-2]
+                elif priority_quality == "Low":
+                    selected_quality = min(available_qualities, key=int)  # Минимальное качество
+                else:
+                    selected_quality = available_qualities[0]  # По умолчанию первое качество
+                combo_box.addItems(available_qualities)  # Добавляем качества в выпадающий список
+                combo_box.setCurrentText(selected_quality)  # Устанавливаем выбранный качество
                 self.tableView.setIndexWidget(self.model.index(row_count, column), combo_box)
             elif column == 2:
                 progress_bar = QProgressBar()
@@ -168,6 +181,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
 
+    def get_priority_quality(self):
+        with open('settings.json', 'r') as f:
+            settings = json.load(f)
+        return settings['video_quality']
+
     def open_settings(self):
         self.settings_dialog = Ui_Settings()
         self.settings_dialog.setWindowModality(Qt.ApplicationModal)
@@ -181,6 +199,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings_dialog.show()
 
     def open_file_dialog(self):
+        priority_quality = self.get_priority_quality()
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         file_names, _ = QFileDialog.getOpenFileNames(self, "Выбрать файлы", "", "KIN Files (*.kin)", options=options)
@@ -198,7 +217,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             # Если файл новый, добавляем его
                             new_files_added = True
                             self.file_paths.append(entry)
-                            self.add_file_to_table(entry)
+                            self.add_file_to_table(entry, priority_quality)
                             self.newly_added_files.append(entry)
 
             # Определяем, какое сообщение показать
