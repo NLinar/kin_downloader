@@ -46,7 +46,7 @@ class Worker(QObject):
             while True:
                 # Если все файлы обработаны, выходим из цикла
                 if len(self.file_paths) == 0 or index >= len(self.file_paths):
-                    print("Все файлы обработаны или индексы вышли за пределы.")
+                    print("Все файлы обработаны")
                     break
                 # Проверяем статус файла в таблице, в 4-м столбце (индекс 3)
                 if index not in self.new_file_indices:
