@@ -1,5 +1,22 @@
-from PyQt5.QtCore import QObject, pyqtSignal
+import os
 import time
+import json
+import shutil
+import subprocess
+from io import BytesIO
+from os import PathLike
+from typing import Union
+from pathlib import Path
+from requests import Session
+from subprocess import Popen
+from shutil import copyfileobj, rmtree
+from base64 import b64decode, b64encode
+from PyQt5.QtCore import QObject, pyqtSignal
+from requests.exceptions import ChunkedEncodingError
+from mpegdash.parser import MPEGDASHParser, MPEGDASH
+from kinescope.kinescope import KinescopeVideo
+from kinescope.const import KINESCOPE_BASE_URL
+from kinescope.exceptions import *
 
 class Worker(QObject):
     progress_signal = pyqtSignal(int, int)
@@ -10,6 +27,16 @@ class Worker(QObject):
 
     def __init__(self, file_paths, new_file_indices, stop_event):
         super().__init__()
+
+        # Загрузка настроек
+        with open("settings.json", "r", encoding="utf-8") as file:
+            settings = json.load(file)
+
+        self.temp_path: Path = Path(settings["temp_folder"])
+        self.temp_path.mkdir(parents=True, exist_ok=True)
+        self.ffmpeg_path = settings["ffmpeg_path"]
+        self.mp4decrypt_path = settings["4decrypt_path"]
+
         self.file_paths = list(enumerate(file_paths))
         self.new_file_indices = new_file_indices
         self.stop_event = stop_event
@@ -55,6 +82,13 @@ class Worker(QObject):
                 else:
                     # Получаем текущий файл
                     entry = self.file_paths[index]
+                    entry_data = entry[1]  # Извлекаем словарь из кортежа
+
+                    # Теперь можно заполнить переменные
+                    resolution = entry_data["Quality"] # надо реализовать передачу разрешений по массиву, нужен динамический
+                    additional_info = entry_data["key"]
+                    name_video = entry_data["Title"]
+
                     if self.stop_event.is_set():
                         return
                     for i in range(1, 51):

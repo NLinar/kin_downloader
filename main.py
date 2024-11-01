@@ -18,6 +18,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        self.resolution_files = []  # Список разрешений
         self.newly_added_files = []  # Список новых файлов
         self.new_file_indices = None  # Индексы новых файлов
         self.settings_dialog = None  # Диалог настроек
@@ -28,6 +29,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.finish_status = False  # Флаг завершения загрузки
         self.new_not_downloaded_files = []  # Список новых не загруженных файлов
         self.worker = None  # Ссылка на worker
+        self.resolution_map = {
+            "720": (1280, 720),
+            "1080": (1920, 1080),
+            "480": (854, 480),
+            "360": (640, 360),
+        }
 
         self.model = QStandardItemModel(0, 4)
 
@@ -57,6 +64,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableView.setStyleSheet(style_sheet_1)
 
 # ======================================================================================================================
+
+    # Выбор качества
+    def on_combobox_changed(self, row):
+        combo_box = self.tableView.indexWidget(self.model.index(row, 1))
+        if combo_box:
+            selected_value = combo_box.currentText()
+            selected_value = self.get_resolution(selected_value, self.resolution_map)
+            self.resolution_files[row] = selected_value
+            print(f"Строка: {row}, выбранное значение: {selected_value}")
+            print(f"Разрешения: {self.resolution_files}")  # Выводим содержимое массива
 
     # Закрытие программы
     def closeEvent(self, event):
@@ -167,6 +184,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     selected_quality = available_qualities[0]  # По умолчанию первое качество
                 combo_box.addItems(available_qualities)  # Добавляем качества в выпадающий список
                 combo_box.setCurrentText(selected_quality)  # Устанавливаем выбранный качество
+                self.resolution_files.append(self.get_resolution(selected_quality, self.resolution_map))  # Сохраняем выбранный качество
+                combo_box.currentIndexChanged.connect(lambda index, row=row_count: self.on_combobox_changed(row))
+
+                print(f"resolution_files: {self.resolution_files}")
                 self.tableView.setIndexWidget(self.model.index(row_count, column), combo_box)
             elif column == 2:
                 progress_bar = QProgressBar()
@@ -185,6 +206,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open('settings.json', 'r') as f:
             settings = json.load(f)
         return settings['video_quality']
+
+    def get_resolution(self, selected_quality, resolution_map):
+        return resolution_map.get(selected_quality, (640, 360))
 
     def open_settings(self):
         self.settings_dialog = Ui_Settings()
@@ -258,10 +282,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_3.setEnabled(False)
 
             self.new_file_indices = []
-            self.new_file_indices = [self.file_paths.index(file) for file in self.newly_added_files if file in self.file_paths]
+            self.new_file_indices = [self.file_paths.index(file) for file in self.newly_added_files if
+                                     file in self.file_paths]
             print(f"new_file_indices: {self.new_file_indices}")
 
-            self.worker = Worker(self.file_paths, self.new_file_indices, self.stop_threads)  # Сохраняем ссылку на worker
+            self.worker = Worker(self.file_paths, self.new_file_indices,
+                                 self.stop_threads)  # Сохраняем ссылку на worker
             self.worker.progress_signal.connect(self.update_progress)
             self.worker.status_signal.connect(self.update_status)
             self.worker.finished_signal.connect(self.on_finished)
