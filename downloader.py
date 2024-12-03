@@ -22,10 +22,11 @@ class Worker(QObject):
     progress_signal = pyqtSignal(int, int)
     status_signal = pyqtSignal(int, str)
     finished_signal = pyqtSignal(bool)
-    update_signal = pyqtSignal(list)  # Сигнал теперь передает список новых файлов
+    update_signal = pyqtSignal(list)  # Сигнал передает список новых файлов
+    update_resolution_signal = pyqtSignal(list)  # Сигнал передает список качеств
     remove_signal = pyqtSignal(list)  # Для удаления по индексу
 
-    def __init__(self, file_paths, new_file_indices, stop_event):
+    def __init__(self, file_paths, resolution_files, new_file_indices, stop_event):
         super().__init__()
 
         # Загрузка настроек
@@ -38,10 +39,12 @@ class Worker(QObject):
         self.mp4decrypt_path = settings["4decrypt_path"]
 
         self.file_paths = list(enumerate(file_paths))
+        self.resolution_files = list(resolution_files)
         self.new_file_indices = new_file_indices
         self.stop_event = stop_event
         # Подключение сигнала к слоту
         self.update_signal.connect(self.on_update_not_downloaded_files)
+        self.update_resolution_signal.connect(self.on_update_resolution)
         self.remove_signal.connect(self.on_remove_file)
 
     def on_update_not_downloaded_files(self, new_files):
@@ -60,9 +63,14 @@ class Worker(QObject):
         print(f"on_update_new_file_indices: {self.new_file_indices}")
         print(f"on_update: {self.file_paths}")
 
+    def on_update_resolution(self, new_resolution_files):
+        self.resolution_files = list(new_resolution_files)
+        print(f"Данные в downloader: {new_resolution_files}")
+
     def on_remove_file(self, indices):
         for index in sorted(indices, reverse=True):
             del self.file_paths[index]
+            del self.resolution_files[index]
             del self.new_file_indices[-1]
         print(f"on_remove_new_file_indices: {self.new_file_indices}")
 
@@ -85,9 +93,12 @@ class Worker(QObject):
                     entry_data = entry[1]  # Извлекаем словарь из кортежа
 
                     # Теперь можно заполнить переменные
-                    resolution = entry_data["Quality"] # надо реализовать передачу разрешений по массиву, нужен динамический
+                    resolution = self.resolution_files[index]
                     additional_info = entry_data["key"]
                     name_video = entry_data["Title"]
+                    print(f"Качество: {resolution}")
+                    print(f"Ключ: {additional_info}")
+                    print(f"Название: {name_video}")
 
                     if self.stop_event.is_set():
                         return

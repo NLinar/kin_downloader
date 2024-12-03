@@ -74,6 +74,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.resolution_files[row] = selected_value
             print(f"Строка: {row}, выбранное значение: {selected_value}")
             print(f"Разрешения: {self.resolution_files}")  # Выводим содержимое массива
+            if self.threads and not self.finish_status:
+                self.worker.update_resolution_signal.emit(self.resolution_files)
+
 
     # Закрытие программы
     def closeEvent(self, event):
@@ -156,7 +159,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.threads or self.finish_status:
             self.pushButton_2.setEnabled(True)
             self.pushButton_3.setEnabled(True)
-        print(f"file_paths: {self.file_paths}")
+        # print(f"file_paths: {self.file_paths}")
 
     # ======================================================================================================================
 
@@ -187,7 +190,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.resolution_files.append(self.get_resolution(selected_quality, self.resolution_map))  # Сохраняем выбранный качество
                 combo_box.currentIndexChanged.connect(lambda index, row=row_count: self.on_combobox_changed(row))
 
-                print(f"resolution_files: {self.resolution_files}")
+                # print(f"resolution_files: {self.resolution_files}")
                 self.tableView.setIndexWidget(self.model.index(row_count, column), combo_box)
             elif column == 2:
                 progress_bar = QProgressBar()
@@ -273,6 +276,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_3.setEnabled(False)
         self.model.removeRows(0, self.model.rowCount())
         self.file_paths.clear()
+        self.resolution_files.clear()
         print("Таблица и массив очищены")
 
     # Запуск потока
@@ -284,9 +288,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.new_file_indices = []
             self.new_file_indices = [self.file_paths.index(file) for file in self.newly_added_files if
                                      file in self.file_paths]
-            print(f"new_file_indices: {self.new_file_indices}")
+            # print(f"new_file_indices: {self.new_file_indices}")
 
-            self.worker = Worker(self.file_paths, self.new_file_indices,
+            self.worker = Worker(self.file_paths, self.resolution_files, self.new_file_indices,
                                  self.stop_threads)  # Сохраняем ссылку на worker
             self.worker.progress_signal.connect(self.update_progress)
             self.worker.status_signal.connect(self.update_status)
@@ -347,6 +351,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for row in sorted(indices_to_remove, reverse=True):
             self.model.removeRow(row)
             del self.file_paths[row]
+            del self.resolution_files[row]
 
         if self.threads and not self.finish_status:
             self.worker.remove_signal.emit(indices_to_remove)
