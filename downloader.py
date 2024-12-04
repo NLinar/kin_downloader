@@ -5,11 +5,9 @@ import shutil
 import subprocess
 from io import BytesIO
 from os import PathLike
-from typing import Union
 from typing import Optional
 from pathlib import Path
 from requests import Session
-from subprocess import Popen
 from shutil import copyfileobj, rmtree
 from base64 import b64decode, b64encode
 from PyQt5.QtCore import QObject, pyqtSignal
