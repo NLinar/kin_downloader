@@ -319,9 +319,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             progress_bar = self.tableView.indexWidget(self.model.index(file_index, 2))
             status_label = self.tableView.indexWidget(self.model.index(file_index, 3))
             if progress_bar:
-                progress_bar.setValue(progress)
                 status_label.setStyleSheet("color: black;")
                 status_label.setText("Идет загрузка...")
+                progress_bar.setValue(progress)
         except Exception as e:
             print(f"Error_progress: {e}")
 
