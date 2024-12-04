@@ -193,6 +193,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 combo_box.addItems(available_qualities)  # Добавляем качества в выпадающий список
                 combo_box.setCurrentText(selected_quality)  # Устанавливаем выбранный качество
                 self.resolution_files.append(self.get_resolution(selected_quality, self.resolution_map))  # Сохраняем выбранный качество
+
+                # Отправляем выбранный качество в поток
+                if self.threads and not self.finish_status:
+                    self.worker.update_resolution_signal.emit(self.resolution_files)
+
                 combo_box.currentIndexChanged.connect(lambda index, row=row_count: self.on_combobox_changed(row))
 
                 # print(f"resolution_files: {self.resolution_files}")
@@ -366,7 +371,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_2.setEnabled(False)
             self.pushButton_3.setEnabled(False)
 
-        print(f"delete_selected_rows: {self.file_paths}")
+        # print(f"delete_selected_rows: {self.file_paths}")
 
 
 if __name__ == '__main__':
