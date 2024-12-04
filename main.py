@@ -30,10 +30,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.new_not_downloaded_files = []  # Список новых не загруженных файлов
         self.worker = None  # Ссылка на worker
         self.resolution_map = {
-            "720": (1280, 720),
             "1080": (1920, 1080),
+            "720": (1280, 720),
             "480": (854, 480),
             "360": (640, 360),
+            # ===========
+            "1020": (1920, 1020),
+            "680": (1280, 680),
+            "452": (854, 452),
+            "340": (640, 340),
         }
 
         self.model = QStandardItemModel(0, 4)
