@@ -74,6 +74,13 @@ class Ui_Settings(QMainWindow):
             quality = self.quality_reverse_mapping.get(settings.get("video_quality", "High"), "Высокое")
             self.ui.comboBox.setCurrentText(quality)
 
+    def closeEvent(self, event):
+        # Проверяем, заполнены ли настройки
+        if not self.ui.lineEdit.text() or not self.ui.lineEdit_4.text() or not self.ui.lineEdit_5.text() or not self.ui.lineEdit_6.text():
+            QApplication.quit()  # Завершаем приложение
+            sys.exit()  # Прекращаем выполнение программы
+        super().closeEvent(event)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = Ui_Settings()

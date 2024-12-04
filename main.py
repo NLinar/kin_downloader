@@ -29,6 +29,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.finish_status = False  # Флаг завершения загрузки
         self.new_not_downloaded_files = []  # Список новых не загруженных файлов
         self.worker = None  # Ссылка на worker
+
+        # Путь к файлу настроек
+        self.settings_file = "settings.json"
+        self.ensure_settings_file()
+
         self.resolution_map = {
             "1080": (1920, 1080),
             "720": (1280, 720),
@@ -215,6 +220,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tableView.indexWidget(self.model.index(row_count, 2)).setStyleSheet(style_sheet_2)
 
+    # Проверка и создание settings.json
+    def ensure_settings_file(self):
+        if not os.path.exists(self.settings_file):
+            # Создаем файл с базовым шаблоном, если его нет
+            default_settings = {
+                "ffmpeg_path": "",
+                "4decrypt_path": "",
+                "temp_folder": "",
+                "save_folder": "",
+                "video_quality": ""
+            }
+            with open(self.settings_file, 'w', encoding='utf-8') as f:
+                json.dump(default_settings, f, indent=4, ensure_ascii=False)
+
+        # Проверяем заполненность данных в файле
+        with open(self.settings_file, 'r', encoding='utf-8') as f:
+            settings = json.load(f)
+            if any(not value for value in settings.values()):  # Если есть пустые значения
+                QMessageBox.warning(self, "Настройки", "Необходимо заполнить пути перед использованием!")
+                self.open_settings()  # Открываем окно настроек
+
     def get_priority_quality(self):
         with open('settings.json', 'r') as f:
             settings = json.load(f)
@@ -236,6 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings_dialog.show()
 
     def open_file_dialog(self):
+        print("open_file_dialog")
         priority_quality = self.get_priority_quality()
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
@@ -316,8 +343,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Обновление прогресса
     def update_progress(self, file_index, progress):
         try:
+            combo_box = self.tableView.indexWidget(self.model.index(file_index, 1))
             progress_bar = self.tableView.indexWidget(self.model.index(file_index, 2))
             status_label = self.tableView.indexWidget(self.model.index(file_index, 3))
+            if combo_box:
+                combo_box.setEnabled(False)
             if progress_bar:
                 status_label.setStyleSheet("color: black;")
                 status_label.setText("Идет загрузка...")
