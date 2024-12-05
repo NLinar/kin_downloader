@@ -86,10 +86,10 @@ class Worker(QObject):
                       source_audio_filepath: str | PathLike,
                       target_filepath: str | PathLike):
         try:
-            subprocess.Popen((self.ffmpeg_path,
-                              "-i", source_video_filepath,
-                              "-i", source_audio_filepath,
-                              "-c", "copy", target_filepath,
+            subprocess.Popen((str(self.ffmpeg_path),
+                              "-i", str(source_video_filepath),
+                              "-i", str(source_audio_filepath),
+                              "-c", "copy", str(target_filepath),
                               "-y", "-loglevel", "error"), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              creationflags=subprocess.CREATE_NO_WINDOW).communicate()
         except FileNotFoundError:
@@ -97,10 +97,10 @@ class Worker(QObject):
 
     def _decrypt_video(self, source_filepath: str | PathLike, target_filepath: str | PathLike, key: str):
         try:
-            subprocess.Popen((self.mp4decrypt_path,
+            subprocess.Popen((str(self.mp4decrypt_path),
                               "--key", f"1:{key}",
-                              source_filepath,
-                              target_filepath), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              str(source_filepath),
+                              str(target_filepath)), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              creationflags=subprocess.CREATE_NO_WINDOW).communicate()
         except FileNotFoundError:
             raise FFmpegNotFoundError('mp4decrypt binary was not found at the specified path')
@@ -183,10 +183,14 @@ class Worker(QObject):
             raise InvalidResolution('Invalid resolution specified')
 
     def _fetch_mpd_master(self) -> MPEGDASH:
-        return MPEGDASHParser.parse(self.http.get(
+        mpd_text = self.http.get(
             url=self.kinescope_video.get_mpd_master_playlist_url(),
             headers={'Referer': KINESCOPE_BASE_URL}
-        ).text)
+        ).text
+        # Замена "https://dashif.org/"minBufferTime на "https://dashif.org/" minBufferTime
+        mpd_text = mpd_text.replace('"https://dashif.org/"minBufferTime', '"https://dashif.org/" minBufferTime')
+
+        return MPEGDASHParser.parse(mpd_text)
 
     # ======================================================================================================================
 
@@ -258,6 +262,7 @@ class Worker(QObject):
                     if self.stop_event.is_set():
                         return
                     if key:
+                        print("Декодирование")
                         self.status_signal.emit(index, "Декодирование")
                         self._decrypt_video(
                             self.temp_path / f'{self.kinescope_video.video_id}_video.mp4.enc',
