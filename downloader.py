@@ -226,7 +226,7 @@ class Worker(QObject):
                     self.progress_signal.emit(index, 0)
 
                     self.kinescope_video = KinescopeVideo(url=input_url, video_id=entry_data["Video ID"], referer_url=referer)
-                    self.mpd_master = self._fetch_mpd_master()  # надо сделать проверку на то что mpd не удален в kinescope
+                    self.mpd_master = self._fetch_mpd_master()
 
                     if additional_info:
                         key = additional_info
