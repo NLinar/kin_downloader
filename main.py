@@ -1,9 +1,10 @@
 import os
 import sys
 import threading
+import subprocess
 import json
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView,
-                             QFileDialog, QMessageBox)
+                             QFileDialog, QMessageBox, QMenu)
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
 from main_window_ui import Ui_MainWindow
@@ -62,6 +63,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableView.verticalHeader().hide()
         self.tableView.setSelectionBehavior(QTableView.SelectRows)
         self.tableView.setSelectionMode(QTableView.ExtendedSelection)
+
+        self.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tableView.customContextMenuRequested.connect(self.show_context_menu)
 
         self.setAcceptDrops(True)
         # меню
@@ -172,6 +176,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # print(f"file_paths: {self.file_paths}")
 
     # ======================================================================================================================
+
+    # Открытие контекстного меню
+    def show_context_menu(self, position):
+        index = self.tableView.indexAt(position)  # Получаем индекс строки и столбца
+        if not index.isValid():
+            return  # Если клик вне строки, ничего не делаем
+
+        row = index.row()
+        status_label = self.tableView.indexWidget(
+            self.model.index(row, 3))  # Получаем виджет статуса (последняя колонка)
+
+        if not status_label or status_label.text() != "Загружено":
+            return  # Если статус не "Загружено", ничего не делаем
+
+        video_title = self.model.item(row, 0).text()  # Название видео (первая колонка)
+
+        with open('settings.json', 'r', encoding='utf-8') as f:
+            settings = json.load(f)
+        save_folder = settings.get("save_folder", "")
+        if not os.path.exists(save_folder):
+            print("Папка сохранения не найдена!")
+            return None
+
+        # Создаем меню
+        menu = QMenu(self)
+        open_action = menu.addAction("Открыть видео")
+        show_folder_action = menu.addAction("Показать папку")
+
+        # Показываем меню в позиции клика
+        action = menu.exec_(self.tableView.viewport().mapToGlobal(position))
+
+        # Обработка действий меню
+        if action == open_action:
+            print(f"Открытие видео: {video_title}")
+        elif action == show_folder_action:
+            self.show_folder(save_folder)
+
+    def show_folder(self, save_folder):
+        try:
+            abs_path = os.path.abspath(save_folder)  # Абсолютный путь к папке
+
+            if os.name == 'nt':  # Windows
+                subprocess.run(['explorer', abs_path])  # Открыть папку в проводнике
+            elif os.name == 'posix':  # macOS/Linux
+                subprocess.run(['open' if sys.platform == 'darwin' else 'xdg-open', abs_path])  # Открыть папку
+        except Exception as e:
+            print(f"Ошибка при открытии папки: {e}")
 
     # Добавление файлов в таблицу
     def add_file_to_table(self, entry, priority_quality):
