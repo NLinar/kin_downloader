@@ -277,7 +277,8 @@ class Worker(QObject):
                     if self.stop_event.is_set():
                         return
                     self.status_signal.emit(index, "Объединение")
-                    filepath = self.output_dir / Path(name_video).with_suffix('.mp4').name
+                    filepath = self.output_dir / f"{name_video}.mp4"
+                    # print(f"Путь и название файла: {filepath}")
                     filepath.parent.mkdir(parents=True, exist_ok=True)
 
                     self._merge_tracks(

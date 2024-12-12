@@ -2,10 +2,11 @@ import os
 import sys
 import threading
 import subprocess
+import base64
 import json
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QHeaderView, QComboBox, QProgressBar, QLabel, QTableView,
-                             QFileDialog, QMessageBox, QMenu)
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
+                             QFileDialog, QMessageBox, QMenu, QAction)
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QPixmap
 from PyQt5.QtCore import Qt
 from main_window_ui import Ui_MainWindow
 from setting import Ui_Settings
@@ -201,17 +202,70 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Создаем меню
         menu = QMenu(self)
-        open_action = menu.addAction("Открыть видео")
-        show_folder_action = menu.addAction("Показать папку")
+
+        folder_icon = ("iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAuElEQVR4nO2YsQ2DMBRE3"
+                       "xxQZ4asl3FCwWQoErDARZFcJY2Jbb4l7knX3+No/MEYY4z55QbMwA7oYB50UP71R/FuJObC8uESeyWBMAl9JZc7sFaUV8rng0"
+                       "7A2FqgpYSAJVeiRKC1xPMMgZYS61kCNdHRPhaojLxAMPICwcgLBCMvEIy8QDDyAsHICwQjLxCMLrfA1uiicNqjfuqgqErOKmM"
+                       "6IqmzLMBAJkOy7eF32lKX7PLGGGOuwxuSeuZIueXxRgAAAABJRU5ErkJggg==")
+
+        player_icon = ("iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA/0lEQVR4nO2ZMQrCQBBFX"
+                       "+UNbGJtIehNbD2LZ/EGWtjaeBLPEBRNm+LbJE0gsLtRdxbnwZQb/mNmYNmA4ziORZbAGWgAZa4GOAGLmPB3A8E1qDpU4mwgrE"
+                       "bqGCJgYWw0Us8QgeGh3Cg2jwt8GHkHMiPvQCBXYEPBHRDQAgdgnp43r0BfD2APzCLOmxLo6wbsIr5hTqCvKfshCwJT9kNWBFL"
+                       "3Q9YEYvdDlgW2JQoUO0JtyUt8BdaRwU0IhM65OYFirxJtyZe5C7BKz5lf4FvIBTIj70Bm9HcdeCXcLE097p4MBNWU5/VF9zNB"
+                       "xqoGKgKpOlsL4/TqsgSHdxzH4We8AYi/f7uN0r1+AAAAAElFTkSuQmCC")
+
+        player_pixmap = QPixmap()
+        player_pixmap.loadFromData(base64.b64decode(player_icon))
+        folder_pixmap = QPixmap()
+        folder_pixmap.loadFromData(base64.b64decode(folder_icon))
+
+        # Создаём действия с иконками
+        open_action = QAction(QIcon(player_pixmap), "Открыть видео", self)
+        show_folder_action = QAction(QIcon(folder_pixmap), "Показать папку", self)
+
+        # Добавляем действия в меню
+        menu.addAction(open_action)
+        menu.addAction(show_folder_action)
 
         # Показываем меню в позиции клика
         action = menu.exec_(self.tableView.viewport().mapToGlobal(position))
 
         # Обработка действий меню
         if action == open_action:
-            print(f"Открытие видео: {video_title}")
+            self.open_video(video_title)
         elif action == show_folder_action:
             self.show_folder(save_folder)
+
+    def open_video(self, title):
+        try:
+            # Читаем настройки
+            with open('settings.json', 'r', encoding='utf-8') as f:
+                settings = json.load(f)
+            save_folder = settings.get("save_folder", "")
+
+            if not os.path.exists(save_folder):
+                print("Папка сохранения не найдена!")
+                return
+
+            # Получаем все файлы в папке
+            files_in_folder = os.listdir(save_folder)
+            # print(f"В папке {save_folder} найдено {len(files_in_folder)} файлов.")
+
+            # Сравниваем по частичному совпадению
+            for file_name in files_in_folder:
+                if title in file_name:  # Если название частично совпадает
+                    video_path = os.path.join(save_folder, file_name)  # Полный путь к видео
+
+                    # Открываем видео
+                    if os.name == 'nt':  # Windows
+                        os.startfile(video_path)
+                    elif os.name == 'posix':  # macOS/Linux
+                        subprocess.run(['open' if sys.platform == 'darwin' else 'xdg-open', video_path])
+                    return  # Видео найдено и открыто, выходим из метода
+
+            print("Видео не найдено в папке сохранения.")
+        except Exception as e:
+            print(f"Ошибка при открытии видео: {e}")
 
     def show_folder(self, save_folder):
         try:
@@ -313,7 +367,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings_dialog.show()
 
     def open_file_dialog(self):
-        print("open_file_dialog")
+        # print("open_file_dialog")
         priority_quality = self.get_priority_quality()
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
