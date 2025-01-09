@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>271</width>
-    <height>374</height>
+    <width>350</width>
+    <height>376</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,8 +18,8 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>271</width>
-    <height>374</height>
+    <width>350</width>
+    <height>376</height>
    </size>
   </property>
   <property name="contextMenuPolicy">
@@ -59,10 +59,23 @@
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QLineEdit" name="lineEdit"/>
+            <widget class="QLineEdit" name="lineEdit">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Обзор...</string>
              </property>
@@ -88,10 +101,23 @@
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
-            <widget class="QLineEdit" name="lineEdit_4"/>
+            <widget class="QLineEdit" name="lineEdit_4">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Обзор...</string>
              </property>
@@ -117,10 +143,23 @@
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QLineEdit" name="lineEdit_5"/>
+            <widget class="QLineEdit" name="lineEdit_5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_6">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Обзор...</string>
              </property>
@@ -146,10 +185,23 @@
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QLineEdit" name="lineEdit_6"/>
+            <widget class="QLineEdit" name="lineEdit_6">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_7">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Обзор...</string>
              </property>
@@ -177,7 +229,7 @@
            <item>
             <widget class="QComboBox" name="comboBox">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -210,7 +262,7 @@
         <item>
          <widget class="QPushButton" name="pushButton_4">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
